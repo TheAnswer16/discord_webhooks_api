@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	
 	"encoding/json"
 	"net/http"
+	"strconv"
 
-
+	"github.com/TheAnswer16/discord_webhooks_api/internal/app/services"
 	"github.com/TheAnswer16/discord_webhooks_api/internal/domain/entities"
 )
 
@@ -20,7 +20,7 @@ func NewUserController(us *services.UserService) *UserController {
 }
 
 func (uc *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
-	
+
 	var user *entities.User
 
 	err := json.NewDecoder(r.Body).Decode(&user)
@@ -42,7 +42,14 @@ func (uc *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func (uc *UserController) GetUserByID(w http.ResponseWriter, r *http.Request) {
 
-	id := r.URL.Query().Get("id")
+	idParam := r.URL.Path[len("/getUserById/"):]
+
+	id, err := strconv.Atoi(idParam)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	user, err := uc.UserService.GetUserByID(id)
 
@@ -56,14 +63,25 @@ func (uc *UserController) GetUserByID(w http.ResponseWriter, r *http.Request) {
 
 func (uc *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
-	var user *entities.User
+	idParam := r.URL.Path[len("/updateUser/"):]
 
-	err := json.NewDecoder(r.Body).Decode(&user)
+	id, err := strconv.Atoi(idParam)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	var user *entities.User
+
+	err = json.NewDecoder(r.Body).Decode(&user)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	user.ID = id
 
 	updatedUser, err := uc.UserService.UpdateUser(user)
 
@@ -77,9 +95,15 @@ func (uc *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 func (uc *UserController) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
-	id := r.URL.Query().Get("id")
+	idParam := r.URL.Path[len("/deleteUser/"):]
+	id, err := strconv.Atoi(idParam)
 
-	err := uc.UserService.DeleteUser(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = uc.UserService.DeleteUser(id)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
