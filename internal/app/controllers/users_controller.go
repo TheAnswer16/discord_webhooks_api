@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/TheAnswer16/discord_webhooks_api/internal/app/dto"
 	"github.com/TheAnswer16/discord_webhooks_api/internal/app/services"
 	"github.com/TheAnswer16/discord_webhooks_api/internal/domain/entities"
 )
@@ -21,13 +22,20 @@ func NewUserController(us *services.UserService) *UserController {
 
 func (uc *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 
-	var user *entities.User
+	var createUserDTO *dto.CreateUserDTO
 
-	err := json.NewDecoder(r.Body).Decode(&user)
+	err := json.NewDecoder(r.Body).Decode(&createUserDTO)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	user := &entities.User{
+		Name:     createUserDTO.Name,
+		Username: createUserDTO.Username,
+		Password: createUserDTO.Password,
+		Email:    createUserDTO.Email,
 	}
 
 	createdUser, err := uc.UserService.CreateUser(user)
@@ -72,16 +80,21 @@ func (uc *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user *entities.User
+	var updateUserDTO dto.UpdateUserDTO
 
-	err = json.NewDecoder(r.Body).Decode(&user)
+	err = json.NewDecoder(r.Body).Decode(&updateUserDTO)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	user.ID = id
+	user := &entities.User{
+		ID:       id,
+		Name:     updateUserDTO.Name,
+		Email:    updateUserDTO.Email,
+		Username: updateUserDTO.Username,
+	}
 
 	updatedUser, err := uc.UserService.UpdateUser(user)
 

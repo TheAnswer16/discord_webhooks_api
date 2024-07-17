@@ -24,13 +24,14 @@ func main() {
 		}
 	}
 
-	db, err := database.NewConnection("user=postgres password=@Alex1340010ai16jk dbname=discord_webhook_management sslmode=disable")
+	db, err := database.NewConnection("user=postgres password=teste dbname=discord_webhook_management sslmode=disable")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	userRepo := repository.NewUserRepository(db)
-	userService := services.NewUserService(userRepo)
+	passwordService := services.NewPasswordService()
+	userService := services.NewUserService(userRepo, passwordService)
 	userController := controllers.NewUserController(userService)
 	routes.HandleUsersRoutes(userController)
 
